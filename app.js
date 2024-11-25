@@ -1,15 +1,29 @@
 const express = require("express");
-const { getApi, getTopics } = require("./controllers/app.controllers");
+const {
+  getApi,
+  getTopics,
+  getArticleFromId,
+} = require("./controllers/app.controllers");
 const app = express();
-
-app.use(express.json());
 
 app.get("/api", getApi);
 
 app.get("/api/topics", getTopics);
 
+app.get("/api/articles/:article_id", getArticleFromId);
+
 app.all("*", (req, res) => {
-  res.status(404).send({ msg: "page not found" });
+  res.status(404).send({ status: 404, msg: "page not found" });
+});
+
+app.use((err, req, res, next) => {
+  if (err.msg && err.status) {
+    res.status(err.status).send(err);
+  } else next(err);
+});
+
+app.use((err, req, res, next) => {
+  res.status(500).send({ status: 500, msg: "internal server error" });
 });
 
 module.exports = { app };
