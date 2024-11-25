@@ -3,6 +3,7 @@ const {
   getTopicsFromDatabase,
   getArticlesFromDatabase,
   getArticlesIdFromDatabase,
+  getCommentsFromDatabase,
 } = require("../models/app.models");
 
 exports.getApi = (req, res, next) => {
@@ -29,7 +30,18 @@ exports.getArticleFromId = (req, res, next) => {
 };
 
 exports.getArticles = (req, res, next) => {
-  getArticlesFromDatabase().then((articles) => {
-    res.status(200).send({ articles });
-  }).catch(next);
+  getArticlesFromDatabase()
+    .then((articles) => {
+      res.status(200).send({ articles });
+    })
+    .catch(next);
+};
+
+exports.getCommentsByArticle = (req, res, next) => {
+  const { params } = req;
+  getCommentsFromDatabase(params.article_id)
+    .then((comments) => {
+      res.status(200).send({comments});
+    })
+    .catch(next);
 };
