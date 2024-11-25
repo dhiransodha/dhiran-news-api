@@ -4,6 +4,7 @@ const {
   getTopics,
   getArticleFromId,
   getArticles,
+  getCommentsByArticle,
 } = require("./controllers/app.controllers");
 const app = express();
 
@@ -14,6 +15,8 @@ app.get("/api/topics", getTopics);
 app.get("/api/articles/:article_id", getArticleFromId);
 
 app.get("/api/articles", getArticles);
+
+app.get("/api/articles/:article_id/comments", getCommentsByArticle);
 
 app.all("*", (req, res) => {
   res.status(404).send({ status: 404, msg: "page not found" });

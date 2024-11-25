@@ -115,3 +115,49 @@ describe("GET /api/articles", () => {
       });
   });
 });
+
+describe("GET /api/articles/:article_id/comments", () => {
+  test("200: Responds with an array of all the articles as objects in the correct format", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments.length).toBe(11);
+        comments.forEach((comment) => {
+          expect(comment).toMatchObject({
+            comment_id: expect.any(Number),
+            votes: expect.any(Number),
+            created_at: expect.any(String),
+            author: expect.any(String),
+            body: expect.any(String),
+            article_id: expect.any(Number),
+          });
+        });
+      });
+  });
+  test("200: Comments should be served with most recent comment first", () => {
+    return request(app)
+      .get("/api/articles/1/comments")
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("400: Responds with a bad request status when given an invalid article id", () => {
+    return request(app)
+      .get("/api/articles/lkjfsd/comments")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("invalid article id");
+      });
+  });
+
+  test("404: Responds with a not found status when given a valid article id that doesn't have any comments", () => {
+    return request(app)
+      .get("/api/articles/999/comments")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("article id not found");
+      });
+  });
+});
