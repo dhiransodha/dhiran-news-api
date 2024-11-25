@@ -73,13 +73,45 @@ describe("GET /api/articles/:article_id", () => {
   });
 });
 
-describe("404", () => {
-  test("200: Responds with a 404 status indicating page cannot be found", () => {
+describe("GET /api/articles", () => {
+  test("200: Responds with an array of all the articles as objects in the correct format", () => {
     return request(app)
-      .get("/zsdxfcg")
-      .expect(404)
-      .then(({ body }) => {
-        expect(body.msg).toBe("page not found");
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBe(13);
+        articles.forEach((article) => {
+          expect(article).toMatchObject({
+            author: expect.any(String),
+            title: expect.any(String),
+            article_id: expect.any(Number),
+            topic: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+            article_img_url: expect.any(String),
+            comment_count: expect.any(Number),
+          });
+        });
+      });
+  });
+  test("200: The articles objects should not have a body property", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        articles.forEach((article) => {
+          expect(article).not.toMatchObject({
+            body: expect.anything(),
+          });
+        });
+      });
+  });
+  test("200: The articles should be sorted by date in descending order", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("created_at", { descending: true });
       });
   });
 });
