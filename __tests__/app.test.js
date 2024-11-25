@@ -45,7 +45,7 @@ describe("GET /api/articles/:article_id", () => {
         expect(article).toMatchObject({
           author: expect.any(String),
           title: expect.any(String),
-          article_id: expect.any(Number),
+          article_id: 3,
           body: expect.any(String),
           topic: expect.any(String),
           created_at: expect.any(String),
@@ -56,10 +56,19 @@ describe("GET /api/articles/:article_id", () => {
   });
   test("400: Responds with a bad request status when given an invalid id", () => {
     return request(app)
-      .get("/api/articles/999")
+      .get("/api/articles/lkjfsd")
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("bad request");
+        expect(msg).toBe("invalid id");
+      });
+  });
+
+  test("404: Responds with a not found status when given a valid id that doesn't exist in the database", () => {
+    return request(app)
+      .get("/api/articles/999")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("id not found");
       });
   });
 });

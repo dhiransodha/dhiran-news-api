@@ -19,8 +19,6 @@ exports.getTopics = (req, res, next) => {
 exports.getArticleFromId = (req, res, next) => {
   const { params } = req;
   getArticlesFromDatabase(params.article_id).then((article) => {
-    if (article.length === 0)
-      return Promise.reject({ msg: "bad request", status: 400 });
     res.status(200).send({ article: article[0] });
   }).catch(next);
 };
