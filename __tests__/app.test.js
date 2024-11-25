@@ -152,7 +152,7 @@ describe("GET /api/articles/:article_id/comments", () => {
       });
   });
 
-  test("404: Responds with a not found status when given a valid article id that doesn't exist in the database", () => {
+  test("404: Responds with a not found status when given a valid article id that doesn't have any comments", () => {
     return request(app)
       .get("/api/articles/999/comments")
       .expect(404)
