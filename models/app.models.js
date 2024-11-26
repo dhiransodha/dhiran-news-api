@@ -107,3 +107,7 @@ exports.checkCommentExists = (comment_id) => {
         return Promise.reject({ msg: "comment not found", status: 404 });
     });
 };
+
+exports.getUsersFromDatabase = () => {
+  return db.query(`SELECT * FROM users`).then(({ rows }) => rows);
+};
