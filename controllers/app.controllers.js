@@ -9,6 +9,7 @@ const {
   checkArticleExists,
   deleteCommentFromDatabase,
   checkCommentExists,
+  getUsersFromDatabase,
 } = require("../models/app.models");
 
 exports.getApi = (req, res, next) => {
@@ -87,6 +88,14 @@ exports.deleteComment = (req, res, next) => {
   Promise.all(promises)
     .then(() => {
       res.status(204).send();
+    })
+    .catch(next);
+};
+
+exports.getUsers = (req, res, next) => {
+  getUsersFromDatabase()
+    .then((users) => {
+      res.status(200).send({ users });
     })
     .catch(next);
 };
