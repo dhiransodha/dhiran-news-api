@@ -7,6 +7,7 @@ const {
   getCommentsByArticle,
   postCommentByArticle,
   patchVotesByArticle,
+  deleteComment,
 } = require("./controllers/app.controllers");
 const app = express();
 
@@ -25,6 +26,8 @@ app.get("/api/articles/:article_id/comments", getCommentsByArticle);
 app.post("/api/articles/:article_id/comments", postCommentByArticle);
 
 app.patch("/api/articles/:article_id", patchVotesByArticle);
+
+app.delete("/api/comments/:comment_id", deleteComment);
 
 app.all("*", (req, res) => {
   res.status(404).send({ status: 404, msg: "page not found" });

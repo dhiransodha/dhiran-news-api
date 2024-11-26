@@ -7,6 +7,8 @@ const {
   addCommentToDatabase,
   incrementArticleVotes,
   checkArticleExists,
+  deleteCommentFromDatabase,
+  checkCommentExists,
 } = require("../models/app.models");
 
 exports.getApi = (req, res, next) => {
@@ -71,8 +73,20 @@ exports.patchVotesByArticle = (req, res, next) => {
   Promise.all(promises)
     .then(([_, article]) => {
       article.created_at = String(article.created_at);
-      console.log(article)
       res.status(200).send({ article });
+    })
+    .catch(next);
+};
+
+exports.deleteComment = (req, res, next) => {
+  const { params } = req;
+  const promises = [
+    checkCommentExists(params.comment_id),
+    deleteCommentFromDatabase(params.comment_id),
+  ];
+  Promise.all(promises)
+    .then(() => {
+      res.status(204).send();
     })
     .catch(next);
 };

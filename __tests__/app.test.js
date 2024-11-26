@@ -170,7 +170,7 @@ describe("GET /api/articles/:article_id/comments", () => {
   });
 });
 
-describe("POST /api/articles/article_id:/comments", () => {
+describe("POST /api/articles/:article_id/comments", () => {
   test("200: Serves the comment when given a valid body", () => {
     return request(app)
       .post("/api/articles/1/comments")
@@ -255,7 +255,7 @@ describe("POST /api/articles/article_id:/comments", () => {
   });
 });
 
-describe("PATCH /api/articles/article_id:", () => {
+describe("PATCH /api/articles/:article_id", () => {
   test("200: Serves the article with the incremented votes", () => {
     return db
       .query(`SELECT votes FROM articles WHERE article_id = 1`)
@@ -334,6 +334,37 @@ describe("PATCH /api/articles/article_id:", () => {
       .send({
         inc_votes: 56.3,
       })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+});
+
+describe("DELETE /api/comments/comment_id:", () => {
+  test("204: Deletes the comment from the database", () => {
+    return request(app)
+      .delete("/api/comments/3")
+      .expect(204)
+      .then(() => {
+        return db
+          .query(`SELECT * FROM comments WHERE comment_id = 3`)
+          .then(({ rows }) => {
+            expect(rows.length).toBe(0);
+          });
+      });
+  });
+  test("404: gives a 404 status when the comment id is valid but cannot be found", () => {
+    return request(app)
+      .delete("/api/comments/999")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("comment not found");
+      });
+  });
+  test("400: gives a bad request when the comment id is invalid", () => {
+    return request(app)
+      .delete("/api/comments/fghj")
       .expect(400)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("bad request");
