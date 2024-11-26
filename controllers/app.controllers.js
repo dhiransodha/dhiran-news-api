@@ -45,8 +45,12 @@ exports.getArticles = (req, res, next) => {
 
 exports.getCommentsByArticle = (req, res, next) => {
   const { params } = req;
-  getCommentsFromDatabase(params.article_id)
-    .then((comments) => {
+  const promises = [
+    checkArticleExists(params.article_id),
+    getCommentsFromDatabase(params.article_id),
+  ];
+  Promise.all(promises)
+    .then(([_, comments]) => {
       res.status(200).send({ comments });
     })
     .catch(next);

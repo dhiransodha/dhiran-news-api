@@ -51,13 +51,10 @@ exports.getCommentsFromDatabase = (article_id) => {
   }
   query += ` ORDER BY created_at DESC`;
   return db.query(query, values).then(({ rows }) => {
-    if (rows.length === 0)
-      return Promise.reject({ msg: "article id not found", status: 404 });
-    else
-      return rows.map((comment) => {
-        comment.created_at = String(comment.created_at);
-        return comment;
-      });
+    return rows.map((comment) => {
+      comment.created_at = String(comment.created_at);
+      return comment;
+    });
   });
 };
 
