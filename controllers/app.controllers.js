@@ -5,6 +5,8 @@ const {
   getArticlesIdFromDatabase,
   getCommentsFromDatabase,
   addCommentToDatabase,
+  incrementArticleVotes,
+  checkArticleExists,
 } = require("../models/app.models");
 
 exports.getApi = (req, res, next) => {
@@ -49,9 +51,28 @@ exports.getCommentsByArticle = (req, res, next) => {
 
 exports.postCommentByArticle = (req, res, next) => {
   const { params, body } = req;
-  addCommentToDatabase(params.article_id, body.username, body.body).then(
-    (comment) => {
-      res.status(200).send({comment});
-    }
-  ).catch(next);
+  const promises = [
+    checkArticleExists(params.article_id),
+    addCommentToDatabase(params.article_id, body.username, body.body),
+  ];
+  Promise.all(promises)
+    .then(([_, comment]) => {
+      res.status(200).send({ comment });
+    })
+    .catch(next);
+};
+
+exports.patchVotesByArticle = (req, res, next) => {
+  const { params, body } = req;
+  const promises = [
+    checkArticleExists(params.article_id),
+    incrementArticleVotes(params.article_id, body.inc_votes),
+  ];
+  Promise.all(promises)
+    .then(([_, article]) => {
+      article.created_at = String(article.created_at);
+      console.log(article)
+      res.status(200).send({ article });
+    })
+    .catch(next);
 };

@@ -229,12 +229,110 @@ describe("POST /api/articles/article_id:/comments", () => {
         expect(msg).toBe("bad request");
       });
   });
+  test("404: Gives an article not found message when the article id is valid but the article does not exist", () => {
+    return request(app)
+      .post("/api/articles/999/comments")
+      .send({
+        username: "icellusedkars",
+        body: "cool article",
+      })
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("article not found");
+      });
+  });
   test("400: Gives a bad request status when the username does not exist", () => {
     return request(app)
       .post("/api/articles/1/comments")
       .send({
         username: "hi",
         body: "cool article",
+      })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+});
+
+describe("PATCH /api/articles/article_id:", () => {
+  test("200: Serves the article with the incremented votes", () => {
+    return db
+      .query(`SELECT votes FROM articles WHERE article_id = 1`)
+      .then(({ rows }) => {
+        return request(app)
+          .patch("/api/articles/1")
+          .send({
+            inc_votes: 27,
+          })
+          .expect(200)
+          .then(({ body: { article } }) => {
+            expect(article).toMatchObject({
+              article_id: expect.any(Number),
+              title: expect.any(String),
+              topic: expect.any(String),
+              author: expect.any(String),
+              body: expect.any(String),
+              created_at: expect.any(String),
+              votes: rows[0].votes + 27,
+              article_img_url: expect.any(String),
+            });
+          });
+      });
+  });
+  test("200: Appends the new vote count to the database", () => {
+    return db
+      .query(`SELECT votes FROM articles WHERE article_id = 3`)
+      .then(({ rows }) => {
+        return request(app)
+          .patch("/api/articles/3")
+          .send({
+            inc_votes: 48,
+          })
+          .expect(200)
+          .then(() => {
+            return db
+              .query(`SELECT * FROM articles WHERE article_id = 3`)
+              .then(({ rows: [article] }) => {
+                expect(article).toMatchObject({
+                  article_id: expect.any(Number),
+                  title: expect.any(String),
+                  topic: expect.any(String),
+                  author: expect.any(String),
+                  body: expect.any(String),
+                  created_at: expect.any(Date),
+                  votes: rows[0].votes + 48,
+                  article_img_url: expect.any(String),
+                });
+              });
+          });
+      });
+  });
+  test("404: Gives a relevant message when article id is valid but doesn't exist", () => {
+    return request(app)
+      .patch("/api/articles/999")
+      .send({
+        inc_votes: 48,
+      })
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("article not found");
+      });
+  });
+  test("400: Gives a bad request when not enough information is valid", () => {
+    return request(app)
+      .patch("/api/articles/2")
+      .send({})
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+  test("400: Gives a bad request when the inc_votes type is incorrect", () => {
+    return request(app)
+      .patch("/api/articles/1")
+      .send({
+        inc_votes: 56.3,
       })
       .expect(400)
       .then(({ body: { msg } }) => {

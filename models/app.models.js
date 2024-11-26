@@ -72,3 +72,23 @@ exports.addCommentToDatabase = (article_id, username, body) => {
     return rows[0];
   });
 };
+
+exports.incrementArticleVotes = (article_id, inc_votes) => {
+  const values = [article_id, inc_votes];
+  return db
+    .query(
+      `UPDATE articles SET votes = votes + $2 WHERE article_id = $1 RETURNING *`,
+      values
+    )
+    .then(({ rows: [article] }) => article);
+};
+
+exports.checkArticleExists = (article_id) => {
+  const values = [article_id];
+  return db
+    .query(`SELECT * FROM articles WHERE article_id = $1`, values)
+    .then(({ rows }) => {
+      if (!rows.length)
+        return Promise.reject({ msg: "article not found", status: 404 });
+    });
+};
