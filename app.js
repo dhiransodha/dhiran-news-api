@@ -37,7 +37,8 @@ app.all("*", (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  if (err.code === "22P02" || err.code === "23502" || err.code === "23503") {
+  const badRequestCodes = ["22P02", "23502", "23503", "42703"];
+  if (badRequestCodes.includes(err.code)) {
     res.status(400).send({ msg: "bad request" });
   } else next(err);
 });

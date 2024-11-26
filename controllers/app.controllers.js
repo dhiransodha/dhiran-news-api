@@ -10,6 +10,9 @@ const {
   deleteCommentFromDatabase,
   checkCommentExists,
   getUsersFromDatabase,
+  checkColumnNameExists,
+  checkUserExists,
+  checkValidQueries,
 } = require("../models/app.models");
 
 exports.getApi = (req, res, next) => {
@@ -36,8 +39,15 @@ exports.getArticleFromId = (req, res, next) => {
 };
 
 exports.getArticles = (req, res, next) => {
-  getArticlesFromDatabase()
-    .then((articles) => {
+  const { query } = req;
+  const validQueries = ["sort_by", "order"];
+  const promises = [
+    checkValidQueries(validQueries, query),
+    checkColumnNameExists("articles", query.sort_by),
+    getArticlesFromDatabase(query.sort_by, query.order),
+  ];
+  Promise.all(promises)
+    .then(([_, __, articles]) => {
       res.status(200).send({ articles });
     })
     .catch(next);
@@ -60,10 +70,11 @@ exports.postCommentByArticle = (req, res, next) => {
   const { params, body } = req;
   const promises = [
     checkArticleExists(params.article_id),
+    checkUserExists(body.username),
     addCommentToDatabase(params.article_id, body.username, body.body),
   ];
   Promise.all(promises)
-    .then(([_, comment]) => {
+    .then(([_, __, comment]) => {
       res.status(200).send({ comment });
     })
     .catch(next);
