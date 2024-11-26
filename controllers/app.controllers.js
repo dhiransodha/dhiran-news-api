@@ -40,11 +40,11 @@ exports.getArticleFromId = (req, res, next) => {
 
 exports.getArticles = (req, res, next) => {
   const { query } = req;
-  const validQueries = ["sort_by", "order"];
+  const validQueries = ["sort_by", "order", "topic"];
   const promises = [
     checkValidQueries(validQueries, query),
     Promise.resolve(),
-    getArticlesFromDatabase(query.sort_by, query.order),
+    getArticlesFromDatabase(query.sort_by, query.order, query.topic),
   ];
   if (query.sort_by !== "comment_count")
     promises[1] = checkColumnNameExists("articles", query.sort_by);

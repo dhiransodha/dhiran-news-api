@@ -28,18 +28,24 @@ exports.getArticlesIdFromDatabase = (article_id) => {
   });
 };
 
-exports.getArticlesFromDatabase = (sort_by, order) => {
+exports.getArticlesFromDatabase = (sort_by, order, topic) => {
   const allowedOrder = ["asc", "desc"];
+  const values = [];
   if (!order) order = "desc";
   if (!allowedOrder.includes(order))
     return Promise.reject({ msg: "bad request", status: 400 });
   let query = `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url, CAST(COUNT(comments.comment_id) AS INT) AS comment_count
   FROM articles
-  LEFT JOIN comments ON comments.article_id = articles.article_id
-  GROUP BY articles.article_id`;
+  LEFT JOIN comments ON comments.article_id = articles.article_id`;
+  if (topic) {
+    query += ` WHERE topic = $1`;
+    values[0] = topic;
+  }
+  query += ` GROUP BY articles.article_id`;
   if (!sort_by) query += ` ORDER BY created_at ${order}`;
   else query += ` ORDER BY ${sort_by} ${order}`;
-  return db.query(query).then(({ rows }) => {
+  return db.query(query, values).then(({ rows }) => {
+    if (!rows.length) return Promise.reject({ msg: "not found", status: 404 });
     return rows.map((article) => {
       article.created_at = String(article.created_at);
       return article;
