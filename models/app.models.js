@@ -92,3 +92,18 @@ exports.checkArticleExists = (article_id) => {
         return Promise.reject({ msg: "article not found", status: 404 });
     });
 };
+
+exports.deleteCommentFromDatabase = (comment_id) => {
+  const values = [comment_id];
+  return db.query(`DELETE FROM comments WHERE comment_id = $1`, values);
+};
+
+exports.checkCommentExists = (comment_id) => {
+  const values = [comment_id];
+  return db
+    .query(`SELECT * FROM comments WHERE comment_id = $1`, values)
+    .then(({ rows }) => {
+      if (!rows.length)
+        return Promise.reject({ msg: "comment not found", status: 404 });
+    });
+};
