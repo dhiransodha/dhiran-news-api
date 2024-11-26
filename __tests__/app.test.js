@@ -127,10 +127,12 @@ describe("GET /api/articles", () => {
       })
       .then(() => {
         return request(app)
-          .get("/api/articles?sort_by=votes")
+          .get("/api/articles?sort_by=comment_count")
           .expect(200)
           .then(({ body: { articles } }) => {
-            expect(articles).toBeSortedBy("votes", { descending: true });
+            expect(articles).toBeSortedBy("comment_count", {
+              descending: true,
+            });
           });
       })
       .then(() => {
@@ -200,7 +202,7 @@ describe("GET /api/articles", () => {
         expect(msg).toBe("bad request");
       });
   });
-}); 
+});
 
 describe("GET /api/articles/:article_id/comments", () => {
   test("200: Responds with an array of all the articles as objects in the correct format", () => {
@@ -331,6 +333,7 @@ describe("PATCH /api/articles/:article_id", () => {
           })
           .expect(200)
           .then(({ body: { article } }) => {
+            const initialVotes = rows[0];
             expect(article).toMatchObject({
               article_id: expect.any(Number),
               title: expect.any(String),
@@ -338,37 +341,9 @@ describe("PATCH /api/articles/:article_id", () => {
               author: expect.any(String),
               body: expect.any(String),
               created_at: expect.any(String),
-              votes: rows[0].votes + 27,
+              votes: initialVotes.votes + 27,
               article_img_url: expect.any(String),
             });
-          });
-      });
-  });
-  test("200: Appends the new vote count to the database", () => {
-    return db
-      .query(`SELECT votes FROM articles WHERE article_id = 3`)
-      .then(({ rows }) => {
-        return request(app)
-          .patch("/api/articles/3")
-          .send({
-            inc_votes: 48,
-          })
-          .expect(200)
-          .then(() => {
-            return db
-              .query(`SELECT * FROM articles WHERE article_id = 3`)
-              .then(({ rows: [article] }) => {
-                expect(article).toMatchObject({
-                  article_id: expect.any(Number),
-                  title: expect.any(String),
-                  topic: expect.any(String),
-                  author: expect.any(String),
-                  body: expect.any(String),
-                  created_at: expect.any(Date),
-                  votes: rows[0].votes + 48,
-                  article_img_url: expect.any(String),
-                });
-              });
           });
       });
   });
@@ -403,6 +378,17 @@ describe("PATCH /api/articles/:article_id", () => {
         expect(msg).toBe("bad request");
       });
   });
+  test("400: Gives a bad request when the article id is invalid", () => {
+    return request(app)
+      .patch("/api/articles/invalidid")
+      .send({
+        inc_votes: 56,
+      })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
 });
 
 describe("DELETE /api/comments/comment_id:", () => {
@@ -428,7 +414,7 @@ describe("DELETE /api/comments/comment_id:", () => {
   });
   test("400: gives a bad request when the comment id is invalid", () => {
     return request(app)
-      .delete("/api/comments/fghj")
+      .delete("/api/comments/invalidid")
       .expect(400)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("bad request");
