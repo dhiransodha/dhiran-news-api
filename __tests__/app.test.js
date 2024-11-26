@@ -194,6 +194,36 @@ describe("GET /api/articles", () => {
         expect(msg).toBe("bad request");
       });
   });
+  test("200: The articles can be queried to filter by topic", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles.length).toBe(12);
+        articles.forEach((article) => {
+          expect(article).toMatchObject({ topic: "mitch" });
+        });
+      })
+      .then(() => {
+        return request(app)
+          .get("/api/articles?topic=cats")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).toBe(1);
+            articles.forEach((article) => {
+              expect(article).toMatchObject({ topic: "cats" });
+            });
+          });
+      });
+  });
+  test("404: Gives a not found status when the topic does not exist", () => {
+    return request(app)
+      .get("/api/articles?topic=topicdoesntexist")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("not found");
+      });
+  });
   test("400: Gives bad request when query is not valid", () => {
     return request(app)
       .get("/api/articles?dsfkj=sdfj")
