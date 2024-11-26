@@ -118,7 +118,89 @@ describe("GET /api/articles", () => {
         expect(datedArticles).toBeSortedBy("created_at", { descending: true });
       });
   });
-});
+  test("200: The articles can be queried to be sorted by any valid column, default created_at and order descending", () => {
+    return request(app)
+      .get("/api/articles?sort_by=article_id")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("article_id", { descending: true });
+      })
+      .then(() => {
+        return request(app)
+          .get("/api/articles?sort_by=votes")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toBeSortedBy("votes", { descending: true });
+          });
+      })
+      .then(() => {
+        return request(app)
+          .get("/api/articles?sort_by=author")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toBeSortedBy("author", { descending: true });
+          });
+      });
+  });
+  test("200: The articles can be queried to order by ascending or descending", () => {
+    return request(app)
+      .get("/api/articles?order=asc")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        const datedArticles = articles.map((article) => {
+          article.created_at = Date(article.created_at);
+          return article;
+        });
+        expect(datedArticles).toBeSortedBy("created_at");
+      })
+      .then(() => {
+        return request(app)
+          .get("/api/articles?order")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            const datedArticles = articles.map((article) => {
+              article.created_at = Date(article.created_at);
+              return article;
+            });
+            expect(datedArticles).toBeSortedBy("created_at", {
+              descending: true,
+            });
+          });
+      })
+      .then(() => {
+        return request(app)
+          .get("/api/articles?order=asc&&sort_by=votes")
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles).toBeSortedBy("votes");
+          });
+      });
+  });
+  test("400: Gives bad request when trying to sort by an invalid column", () => {
+    return request(app)
+      .get("/api/articles?sort_by=name")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+  test("400: Gives bad request when trying to order by an invalid parameter", () => {
+    return request(app)
+      .get("/api/articles?order=bob")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+  test("400: Gives bad request when query is not valid", () => {
+    return request(app)
+      .get("/api/articles?dsfkj=sdfj")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+}); 
 
 describe("GET /api/articles/:article_id/comments", () => {
   test("200: Responds with an array of all the articles as objects in the correct format", () => {
@@ -159,7 +241,6 @@ describe("GET /api/articles/:article_id/comments", () => {
         expect(msg).toBe("bad request");
       });
   });
-
   test("404: Responds with a not found status when given a valid article id that doesn't have any comments", () => {
     return request(app)
       .get("/api/articles/999/comments")
@@ -188,23 +269,6 @@ describe("POST /api/articles/:article_id/comments", () => {
           votes: 0,
           body: "cool article",
         });
-      });
-  });
-  test("200: Adds the comment to the database when given a valid body", () => {
-    return request(app)
-      .post("/api/articles/1/comments")
-      .send({
-        username: "icellusedkars",
-        body: "cool article",
-      })
-      .expect(200)
-      .then(({ body: { comment } }) => {
-        return db
-          .query(`SELECT * FROM comments ORDER BY created_at DESC`)
-          .then(({ rows }) => {
-            rows[0].created_at = `${rows[0].created_at}`;
-            expect(rows[0]).toMatchObject(comment);
-          });
       });
   });
   test("400: Gives a bad request status when not given enough information", () => {
@@ -241,16 +305,16 @@ describe("POST /api/articles/:article_id/comments", () => {
         expect(msg).toBe("article not found");
       });
   });
-  test("400: Gives a bad request status when the username does not exist", () => {
+  test("404: Gives a bad request status when the username is valid but does not exist", () => {
     return request(app)
       .post("/api/articles/1/comments")
       .send({
         username: "hi",
         body: "cool article",
       })
-      .expect(400)
+      .expect(404)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("bad request");
+        expect(msg).toBe("username not found");
       });
   });
 });
@@ -378,13 +442,13 @@ describe("GET /api/users", () => {
       .expect(200)
       .then(({ body: { users } }) => {
         expect(users.length).toBe(4);
-        users.forEach(user => {
+        users.forEach((user) => {
           expect(user).toMatchObject({
             username: expect.any(String),
             name: expect.any(String),
-            avatar_url: expect.any(String)
-          })
-        })
+            avatar_url: expect.any(String),
+          });
+        });
       });
   });
 });

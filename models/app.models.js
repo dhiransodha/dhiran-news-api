@@ -28,12 +28,17 @@ exports.getArticlesIdFromDatabase = (article_id) => {
   });
 };
 
-exports.getArticlesFromDatabase = () => {
+exports.getArticlesFromDatabase = (sort_by, order) => {
+  const allowedOrder = ["asc", "desc"];
+  if (!order) order = "desc";
+  if (!allowedOrder.includes(order))
+    return Promise.reject({ msg: "bad request", status: 400 });
   let query = `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url, CAST(COUNT(comments.comment_id) AS INT) AS comment_count
   FROM articles
   LEFT JOIN comments ON comments.article_id = articles.article_id
-  GROUP BY articles.article_id
-  ORDER BY articles.created_at DESC`;
+  GROUP BY articles.article_id`;
+  if (!sort_by) query += ` ORDER BY created_at ${order}`;
+  else query += ` ORDER BY ${sort_by} ${order}`;
   return db.query(query).then(({ rows }) => {
     return rows.map((article) => {
       article.created_at = String(article.created_at);
@@ -107,4 +112,30 @@ exports.checkCommentExists = (comment_id) => {
 
 exports.getUsersFromDatabase = () => {
   return db.query(`SELECT * FROM users`).then(({ rows }) => rows);
+};
+
+exports.checkColumnNameExists = (tableName, columnName) => {
+  if (columnName) {
+    const query = format(`SELECT %I FROM %I`, columnName, tableName);
+    return db.query(query);
+    // error code 42703 when column doesn't exist, caught in app.js
+  }
+};
+
+exports.checkUserExists = (username) => {
+  const values = [username];
+  if (username)
+    return db
+      .query(`SELECT * FROM users WHERE username = $1`, values)
+      .then(({ rows }) => {
+        if (!rows.length)
+          return Promise.reject({ msg: "username not found", status: 404 });
+      });
+};
+
+exports.checkValidQueries = async (validQueriesArr, inputQueriesObj) => {
+  for (let query of Object.keys(inputQueriesObj)) {
+    if (!validQueriesArr.includes(query))
+      return Promise.reject({ msg: "bad request", status: 400 });
+  }
 };
