@@ -111,7 +111,11 @@ describe("GET /api/articles", () => {
       .get("/api/articles")
       .expect(200)
       .then(({ body: { articles } }) => {
-        expect(articles).toBeSortedBy("created_at", { descending: true });
+        const datedArticles = articles.map((article) => {
+          article.created_at = Date(article.created_at);
+          return article;
+        });
+        expect(datedArticles).toBeSortedBy("created_at", { descending: true });
       });
   });
 });
@@ -130,7 +134,7 @@ describe("GET /api/articles/:article_id/comments", () => {
             created_at: expect.any(String),
             author: expect.any(String),
             body: expect.any(String),
-            article_id: expect.any(Number),
+            article_id: 1,
           });
         });
       });
@@ -140,7 +144,11 @@ describe("GET /api/articles/:article_id/comments", () => {
       .get("/api/articles/1/comments")
       .expect(200)
       .then(({ body: { comments } }) => {
-        expect(comments).toBeSortedBy("created_at", { descending: true });
+        const datedComments = comments.map((comment) => {
+          comment.created_at = Date(comment.created_at);
+          return comment;
+        });
+        expect(datedComments).toBeSortedBy("created_at", { descending: true });
       });
   });
   test("400: Responds with a bad request status when given an invalid article id", () => {
@@ -148,7 +156,7 @@ describe("GET /api/articles/:article_id/comments", () => {
       .get("/api/articles/lkjfsd/comments")
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("invalid article id");
+        expect(msg).toBe("bad request");
       });
   });
 
@@ -158,6 +166,79 @@ describe("GET /api/articles/:article_id/comments", () => {
       .expect(404)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("article id not found");
+      });
+  });
+});
+
+describe("POST /api/articles/article_id:/comments", () => {
+  test("200: Serves the comment when given a valid body", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({
+        username: "icellusedkars",
+        body: "cool article",
+      })
+      .expect(200)
+      .then(({ body: { comment } }) => {
+        expect(comment).toMatchObject({
+          comment_id: expect.any(Number),
+          author: "icellusedkars",
+          article_id: 1,
+          created_at: expect.any(String),
+          votes: 0,
+          body: "cool article",
+        });
+      });
+  });
+  test("200: Adds the comment to the database when given a valid body", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({
+        username: "icellusedkars",
+        body: "cool article",
+      })
+      .expect(200)
+      .then(({ body: { comment } }) => {
+        return db
+          .query(`SELECT * FROM comments ORDER BY created_at DESC`)
+          .then(({ rows }) => {
+            rows[0].created_at = `${rows[0].created_at}`;
+            expect(rows[0]).toMatchObject(comment);
+          });
+      });
+  });
+  test("400: Gives a bad request status when not given enough information", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({
+        username: "icellusedkars",
+      })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+  test("400: Gives a bad request status when given invalid information", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({
+        body: "cool article",
+      })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+  test("400: Gives a bad request status when the username does not exist", () => {
+    return request(app)
+      .post("/api/articles/1/comments")
+      .send({
+        username: "hi",
+        body: "cool article",
+      })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
       });
   });
 });

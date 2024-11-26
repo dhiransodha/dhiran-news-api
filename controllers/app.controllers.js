@@ -4,6 +4,7 @@ const {
   getArticlesFromDatabase,
   getArticlesIdFromDatabase,
   getCommentsFromDatabase,
+  addCommentToDatabase,
 } = require("../models/app.models");
 
 exports.getApi = (req, res, next) => {
@@ -41,7 +42,16 @@ exports.getCommentsByArticle = (req, res, next) => {
   const { params } = req;
   getCommentsFromDatabase(params.article_id)
     .then((comments) => {
-      res.status(200).send({comments});
+      res.status(200).send({ comments });
     })
     .catch(next);
+};
+
+exports.postCommentByArticle = (req, res, next) => {
+  const { params, body } = req;
+  addCommentToDatabase(params.article_id, body.username, body.body).then(
+    (comment) => {
+      res.status(200).send({comment});
+    }
+  ).catch(next);
 };
