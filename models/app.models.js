@@ -12,7 +12,7 @@ exports.getTopicsFromDatabase = () => {
   return db.query(`SELECT * FROM topics`).then(({ rows }) => rows);
 };
 
-exports.getArticlesFromDatabase = (sort_by, order, topic, article_id) => {
+exports.getArticlesFromDatabase = async (sort_by, order, topic, article_id) => {
   const allowedOrder = ["asc", "desc"];
   const values = [];
   if (!order) order = "desc";
@@ -22,6 +22,9 @@ exports.getArticlesFromDatabase = (sort_by, order, topic, article_id) => {
   if (article_id) query += `, articles.body`;
   query += ` FROM articles
   LEFT JOIN comments ON comments.article_id = articles.article_id`;
+  const validTopics = (
+    await db.query(`SELECT slug FROM topics`).then(({ rows }) => rows)
+  ).map((obj) => obj.slug);
   if (topic) {
     query += ` WHERE articles.topic = $1`;
     values[0] = topic;
@@ -34,7 +37,14 @@ exports.getArticlesFromDatabase = (sort_by, order, topic, article_id) => {
   if (!sort_by) query += ` ORDER BY created_at ${order}`;
   else query += ` ORDER BY ${sort_by} ${order}`;
   return db.query(query, values).then(({ rows }) => {
-    if (!rows.length) return Promise.reject({ msg: "not found", status: 404 });
+    if (!rows.length) {
+      if (validTopics.includes(topic))
+        return Promise.reject({
+          msg: `no articles found with topic '${topic}'`,
+          status: 200,
+        });
+      else return Promise.reject({ msg: "not found", status: 404 });
+    }
     return rows.map((article) => {
       article.created_at = String(article.created_at);
       return article;

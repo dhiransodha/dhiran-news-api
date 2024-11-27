@@ -217,6 +217,14 @@ describe("GET /api/articles", () => {
           });
       });
   });
+  test("200: Should return nothing if the topic exists but no articles with that topic", () => {
+    return request(app)
+      .get("/api/articles?topic=paper")
+      .expect(200)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("no articles found with topic 'paper'");
+      });
+  });
   test("404: Gives a not found status when the topic does not exist", () => {
     return request(app)
       .get("/api/articles?topic=topicdoesntexist")
