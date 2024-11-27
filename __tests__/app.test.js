@@ -452,6 +452,7 @@ describe("DELETE /api/comments/comment_id:", () => {
       });
   });
 });
+
 describe("GET /api/users", () => {
   test("200: serves all the users from the database", () => {
     return request(app)
@@ -466,6 +467,29 @@ describe("GET /api/users", () => {
             avatar_url: expect.any(String),
           });
         });
+      });
+  });
+});
+
+describe("GET /api/users/:username ", () => {
+  test("200: serves a specific user by username", () => {
+    return request(app)
+      .get("/api/users/butter_bridge")
+      .expect(200)
+      .then(({ body: { user } }) => {
+        expect(user).toMatchObject({
+          username: expect.any(String),
+          name: expect.any(String),
+          avatar_url: expect.any(String),
+        });
+      });
+  });
+  test("404: gives a not found status when the username cannot be found", () => {
+    return request(app)
+      .get("/api/users/usernamedoesntexist")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe('username not found')
       });
   });
 });
