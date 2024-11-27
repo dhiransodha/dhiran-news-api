@@ -20,4 +20,7 @@ The website is hosted here https://dhiran-news.onrender.com/api/
 
 ---
 
+Minimum `Node.js` version `v22.7.0`
+Minimum `PostgreSQL` version `17`
+
 This portfolio project was created as part of a Digital Skills Bootcamp in Software Engineering provided by [Northcoders](https://northcoders.com/)
