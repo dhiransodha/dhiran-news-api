@@ -489,7 +489,61 @@ describe("GET /api/users/:username ", () => {
       .get("/api/users/usernamedoesntexist")
       .expect(404)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe('username not found')
+        expect(msg).toBe("username not found");
+      });
+  });
+});
+
+describe("PATCH /api/comments/:comment_id ", () => {
+  test("200: votes are incremented by the given parameter", () => {
+    return request(app)
+      .patch("/api/comments/2")
+      .send({ inc_votes: 4 })
+      .expect(200)
+      .then(({ body: { comment } }) => {
+        expect(comment).toMatchObject({
+          body: expect.any(String),
+          votes: 18,
+          author: expect.any(String),
+          article_id: expect.any(Number),
+          created_at: expect.any(String),
+        });
+      });
+  });
+  test("404: gives a not found status and message when the comment cannot be found but the id is valid", () => {
+    return request(app)
+      .patch("/api/comments/238")
+      .send({ inc_votes: 4 })
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("comment not found");
+      });
+  });
+  test("400: gives a bad request status when the comment id is invalid", () => {
+    return request(app)
+      .patch("/api/comments/invalidcommentid")
+      .send({ inc_votes: 4 })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+  test("400: gives a bad request status when the body does not have the required information", () => {
+    return request(app)
+      .patch("/api/comments/invalidcommentid")
+      .send({})
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+  test("400: gives a bad request status when the type of inc_votes is invalid", () => {
+    return request(app)
+      .patch("/api/comments/invalidcommentid")
+      .send({inc_votes: 27.4})
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
       });
   });
 });

@@ -150,3 +150,13 @@ exports.checkValidQueries = async (validQueriesArr, inputQueriesObj) => {
       return Promise.reject({ msg: "bad request", status: 400 });
   }
 };
+
+exports.incrementCommentVotes = (comment_id, inc_votes) => {
+  const values = [comment_id, inc_votes];
+  return db
+    .query(
+      `UPDATE comments SET votes = votes + $2 WHERE comment_id = $1 RETURNING *`,
+      values
+    )
+    .then(({ rows: [comment] }) => comment);
+};

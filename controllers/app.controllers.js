@@ -12,6 +12,7 @@ const {
   checkColumnNameExists,
   checkUserExists,
   checkValidQueries,
+  incrementCommentVotes,
 } = require("../models/app.models");
 
 exports.getApi = (req, res, next) => {
@@ -124,6 +125,18 @@ exports.getUserByUsername = (req, res, next) => {
   Promise.all(promises)
     .then(([_, [user]]) => {
       res.status(200).send({ user });
+    })
+    .catch(next);
+};
+
+exports.patchCommentById = (req, res, next) => {
+  const promises = [
+    checkCommentExists(req.params.comment_id),
+    incrementCommentVotes(req.params.comment_id, req.body.inc_votes),
+  ];
+  Promise.all(promises)
+    .then(([_, comment]) => {
+      res.status(200).send({comment});
     })
     .catch(next);
 };
