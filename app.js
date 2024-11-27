@@ -1,36 +1,16 @@
 const express = require("express");
 const {
-  getApi,
-  getTopics,
-  getArticleFromId,
-  getArticles,
   getCommentsByArticle,
   postCommentByArticle,
   patchVotesByArticle,
   deleteComment,
-  getUsers,
 } = require("./controllers/app.controllers");
 const app = express();
+const apiRouter = require("./routes/api-router");
 
 app.use(express.json());
 
-app.get("/api", getApi);
-
-app.get("/api/topics", getTopics);
-
-app.get("/api/users", getUsers);
-
-app.get("/api/articles/:article_id", getArticleFromId);
-
-app.get("/api/articles", getArticles);
-
-app.get("/api/articles/:article_id/comments", getCommentsByArticle);
-
-app.post("/api/articles/:article_id/comments", postCommentByArticle);
-
-app.patch("/api/articles/:article_id", patchVotesByArticle);
-
-app.delete("/api/comments/:comment_id", deleteComment);
+app.use("/api", apiRouter);
 
 app.all("*", (req, res) => {
   res.status(404).send({ status: 404, msg: "page not found" });
