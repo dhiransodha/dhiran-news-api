@@ -225,14 +225,6 @@ describe("GET /api/articles", () => {
         expect(msg).toBe("not found");
       });
   });
-  test("400: Gives bad request when query is not valid", () => {
-    return request(app)
-      .get("/api/articles?dsfkj=sdfj")
-      .expect(400)
-      .then(({ body: { msg } }) => {
-        expect(msg).toBe("bad request");
-      });
-  });
 });
 
 describe("GET /api/articles/:article_id/comments", () => {

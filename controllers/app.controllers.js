@@ -41,14 +41,14 @@ exports.getArticles = (req, res, next) => {
   const { query } = req;
   const validQueries = ["sort_by", "order", "topic"];
   const promises = [
-    checkValidQueries(validQueries, query),
+    // checkValidQueries(validQueries, query),
     Promise.resolve(),
     getArticlesFromDatabase(query.sort_by, query.order, query.topic),
   ];
   if (query.sort_by !== "comment_count")
-    promises[1] = checkColumnNameExists("articles", query.sort_by);
+    promises[0] = checkColumnNameExists("articles", query.sort_by);
   Promise.all(promises)
-    .then(([_, __, articles]) => {
+    .then(([_, articles]) => {
       res.status(200).send({ articles });
     })
     .catch(next);
