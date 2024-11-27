@@ -115,8 +115,14 @@ exports.checkCommentExists = (comment_id) => {
     });
 };
 
-exports.getUsersFromDatabase = () => {
-  return db.query(`SELECT * FROM users`).then(({ rows }) => rows);
+exports.getUsersFromDatabase = (username) => {
+  const values = [];
+  let query = `SELECT * FROM users`;
+  if (username) {
+    query += ` WHERE username = $1`;
+    values[0] = username;
+  }
+  return db.query(query, values).then(({ rows }) => rows);
 };
 
 exports.checkColumnNameExists = (tableName, columnName) => {

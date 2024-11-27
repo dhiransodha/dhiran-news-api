@@ -115,3 +115,15 @@ exports.getUsers = (req, res, next) => {
     })
     .catch(next);
 };
+
+exports.getUserByUsername = (req, res, next) => {
+  const promises = [
+    checkUserExists(req.params.username),
+    getUsersFromDatabase(req.params.username),
+  ];
+  Promise.all(promises)
+    .then(([_, [user]]) => {
+      res.status(200).send({ user });
+    })
+    .catch(next);
+};
