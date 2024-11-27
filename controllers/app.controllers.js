@@ -2,7 +2,6 @@ const {
   getEndpointsFromFile,
   getTopicsFromDatabase,
   getArticlesFromDatabase,
-  getArticlesIdFromDatabase,
   getCommentsFromDatabase,
   addCommentToDatabase,
   incrementArticleVotes,
@@ -31,7 +30,7 @@ exports.getTopics = (req, res, next) => {
 
 exports.getArticleFromId = (req, res, next) => {
   const { params } = req;
-  getArticlesIdFromDatabase(params.article_id)
+  getArticlesFromDatabase(undefined, undefined, undefined, params.article_id)
     .then((article) => {
       res.status(200).send({ article: article[0] });
     })
