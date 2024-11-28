@@ -540,7 +540,60 @@ describe("PATCH /api/comments/:comment_id ", () => {
   test("400: gives a bad request status when the type of inc_votes is invalid", () => {
     return request(app)
       .patch("/api/comments/invalidcommentid")
-      .send({inc_votes: 27.4})
+      .send({ inc_votes: 27.4 })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+});
+
+describe("POST /api/articles ", () => {
+  test("201: article is posted and returned", () => {
+    return request(app)
+      .post("/api/articles")
+      .send({
+        author: "icellusedkars",
+        title: "theory of cats",
+        body: "cats always land on their legs",
+        topic: "cats",
+      })
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article).toMatchObject({
+          author: "icellusedkars",
+          title: "theory of cats",
+          body: "cats always land on their legs",
+          topic: "cats",
+          article_id: expect.any(Number),
+          votes: 0,
+          comment_count: 0,
+          created_at: expect.any(String),
+        });
+      });
+  });
+  test("400: gives bad request if article information is not complete", () => {
+    return request(app)
+      .post("/api/articles")
+      .send({
+        author: "icellusedkars",
+        title: "theory of cats",
+        topic: "cats",
+      })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+  test("400: gives bad request if any article information is invalid", () => {
+    return request(app)
+      .post("/api/articles")
+      .send({
+        author: "icellusedkar",
+        body: "cats always land on their legs",
+        title: "theory of cats",
+        topic: "cats",
+      })
       .expect(400)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("bad request");

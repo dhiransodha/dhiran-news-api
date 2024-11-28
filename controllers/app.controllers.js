@@ -13,6 +13,7 @@ const {
   checkUserExists,
   checkValidQueries,
   incrementCommentVotes,
+  postArticleToDatabase,
 } = require("../models/app.models");
 
 exports.getApi = (req, res, next) => {
@@ -136,7 +137,15 @@ exports.patchCommentById = (req, res, next) => {
   ];
   Promise.all(promises)
     .then(([_, comment]) => {
-      res.status(200).send({comment});
+      res.status(200).send({ comment });
+    })
+    .catch(next);
+};
+
+exports.postArticle = (req, res, next) => {
+  postArticleToDatabase(req.body)
+    .then((article) => {
+      res.status(201).send({ article });
     })
     .catch(next);
 };
