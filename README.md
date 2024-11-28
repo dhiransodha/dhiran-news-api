@@ -1,4 +1,4 @@
-# Northcoders News API
+# Dhiran's News API
 
 This project is an API for looking at news articles, and interacting with them. Comments can be posted on the articles, as long as they are associated with a user. Each article has a number of votes that can be incremeneted. The articles can also be sorted by any property. The details of each enpoint are outlined in the GET /api method, read from the endpoints.json file in the root
 
@@ -22,5 +22,3 @@ The website is hosted here https://dhiran-news.onrender.com/api/
 
 Minimum `Node.js` version `v22.7.0`
 Minimum `PostgreSQL` version `17`
-
-This portfolio project was created as part of a Digital Skills Bootcamp in Software Engineering provided by [Northcoders](https://northcoders.com/)
