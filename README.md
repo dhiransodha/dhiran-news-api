@@ -1,6 +1,6 @@
 # Dhiran's News API
 
-This project is an API for looking at news articles, and interacting with them. Comments can be posted on the articles, as long as they are associated with a user. Each article has a number of votes that can be incremeneted. The articles can also be sorted by any property. The details of each enpoint are outlined in the GET /api method, read from the endpoints.json file in the root
+This project provides an API for accessing and interacting with news articles. Users can post comments on articles, and each article and comment has a count of votes that can be incremented. Additionally, articles can be sorted and are paginated. The details of each endpoint are outlined in the GET /api method, which can be read from the endpoints.json file located in the root directory.
 
 ---
 
