@@ -160,3 +160,19 @@ exports.incrementCommentVotes = (comment_id, inc_votes) => {
     )
     .then(({ rows: [comment] }) => comment);
 };
+
+exports.postArticleToDatabase = (body) => {
+  const array = [
+    Object.keys(body)
+      .sort()
+      .map((key) => body[key]),
+  ];
+  const query = format(
+    `INSERT INTO articles(author, body, title, topic) VALUES %L RETURNING *`,
+    array
+  );
+  return db.query(query).then(({ rows: [article] }) => {
+    article.comment_count = 0;
+    return article;
+  });
+};
