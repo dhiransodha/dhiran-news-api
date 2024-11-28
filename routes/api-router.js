@@ -1,6 +1,6 @@
 const { getApi } = require("../controllers/app.controllers");
 const articlesRouter = require("./api-routes/articles-router");
-const commentsRouter = require("./api-routes/comments-router");
+const commentsRouter = require("./api-routes/comments-router.js");
 
 const topicsRouter = require("./api-routes/topics-router");
 const usersRouter = require("./api-routes/users-router");
