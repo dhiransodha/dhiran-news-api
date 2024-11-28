@@ -233,6 +233,121 @@ describe("GET /api/articles", () => {
         expect(msg).toBe("not found");
       });
   });
+  test("200: When queried with a limit, only displays a limited number of responses, and defaults to 10", () => {
+    return request(app)
+      .get("/api/articles?limit=6")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(articles.length).toBe(6);
+        expect(total_count).toBe(13);
+        articles.forEach((article) => {
+          expect(article).toMatchObject({
+            author: expect.any(String),
+            title: expect.any(String),
+            article_id: expect.any(Number),
+            topic: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+            article_img_url: expect.any(String),
+            comment_count: expect.any(Number),
+          });
+        });
+      })
+      .then(() => {
+        return request(app)
+          .get("/api/articles?limit")
+          .expect(200)
+          .then(({ body: { articles, total_count } }) => {
+            expect(articles.length).toBe(10);
+            expect(total_count).toBe(13);
+          });
+      });
+  });
+  test("200: When queried with a page number, starts at that specific page", () => {
+    return request(app)
+      .get("/api/articles?limit&p=2")
+      .expect(200)
+      .then(({ body: { articles, total_count } }) => {
+        expect(articles.length).toBe(3);
+        expect(total_count).toBe(13);
+        articles.forEach((article) => {
+          expect(article).toMatchObject({
+            author: expect.any(String),
+            title: expect.any(String),
+            article_id: expect.any(Number),
+            topic: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+            article_img_url: expect.any(String),
+            comment_count: expect.any(Number),
+          });
+        });
+      });
+  });
+  test("200: When queried with an out of bounds page number, returns nothing", () => {
+    return request(app)
+      .get("/api/articles?limit&p=2")
+      .expect(200)
+      .then(() => {
+        return request(app)
+          .get("/api/articles?limit&p=3")
+          .expect(200)
+          .then(({ body: { articles, total_count } }) => {
+            expect(articles.length).toBe(0);
+            expect(total_count).toBe(13);
+          });
+      })
+      .then(() => {
+        return request(app)
+          .get("/api/articles?p=2")
+          .expect(200)
+          .then(({ body: { articles, total_count } }) => {
+            expect(articles.length).toBe(0);
+            expect(total_count).toBe(13);
+          });
+      })
+      .then(() => {
+        return request(app)
+          .get("/api/articles?limit=2&p=4")
+          .expect(200)
+          .then(({ body: { articles, total_count } }) => {
+            expect(articles.length).toBe(2);
+            expect(total_count).toBe(13);
+          });
+      });
+  });
+  test("400: Gives bad request status when given an invalid limit", () => {
+    return request(app)
+      .get("/api/articles?limit=-1")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+  test("400: Gives bad request status when given an invalid page", () => {
+    return request(app)
+      .get("/api/articles?p=-1")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("invalid page number");
+      })
+      .then(() => {
+        return request(app)
+          .get("/api/articles?p=notanumber")
+          .expect(400)
+          .then(({ body: { msg } }) => {
+            expect(msg).toBe("bad request");
+          });
+      });
+  });
+  test("400: Gives bad request status when given an invalid limit", () => {
+    return request(app)
+      .get("/api/articles?limit=-1")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
 });
 
 describe("GET /api/articles/:article_id/comments", () => {
