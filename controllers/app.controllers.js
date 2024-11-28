@@ -16,6 +16,7 @@ const {
   postArticleToDatabase,
   checkValidPage,
   checkValidLimit,
+  postTopicToDatabase,
 } = require("../models/app.models");
 
 exports.getApi = (req, res, next) => {
@@ -167,4 +168,10 @@ exports.postArticle = (req, res, next) => {
       res.status(201).send({ article });
     })
     .catch(next);
+};
+
+exports.postTopic = (req, res, next) => {
+  postTopicToDatabase(req.body).then((topic) => {
+    res.status(201).send({ topic });
+  }).catch(next);
 };

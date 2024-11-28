@@ -240,3 +240,12 @@ exports.postArticleToDatabase = (body) => {
     return article;
   });
 };
+
+exports.postTopicToDatabase = (body) => {
+  const query = format(
+    `INSERT INTO topics(slug, description) VALUES %L RETURNING *`,
+    [[body.slug, body.description]]
+  );
+  console.log(query)
+  return db.query(query).then(({ rows }) => rows[0]);
+};
