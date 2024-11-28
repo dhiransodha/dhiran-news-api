@@ -156,6 +156,9 @@ exports.incrementArticleVotes = (article_id, inc_votes) => {
 
 exports.checkArticleExists = (article_id) => {
   const values = [article_id];
+  if (!/^\d+$/.test(article_id)) {
+    return Promise.reject({ msg: "bad request", status: 400 });
+  }
   return db
     .query(`SELECT * FROM articles WHERE article_id = $1`, values)
     .then(({ rows }) => {
@@ -246,6 +249,10 @@ exports.postTopicToDatabase = (body) => {
     `INSERT INTO topics(slug, description) VALUES %L RETURNING *`,
     [[body.slug, body.description]]
   );
-  console.log(query)
   return db.query(query).then(({ rows }) => rows[0]);
+};
+
+exports.deleteArticleByIdFromDatabase = (article_id) => {
+  const values = [article_id];
+  return db.query(`DELETE FROM articles WHERE article_id = $1`, values);
 };

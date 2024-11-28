@@ -17,6 +17,7 @@ const {
   checkValidPage,
   checkValidLimit,
   postTopicToDatabase,
+  deleteArticleByIdFromDatabase,
 } = require("../models/app.models");
 
 exports.getApi = (req, res, next) => {
@@ -171,7 +172,19 @@ exports.postArticle = (req, res, next) => {
 };
 
 exports.postTopic = (req, res, next) => {
-  postTopicToDatabase(req.body).then((topic) => {
-    res.status(201).send({ topic });
-  }).catch(next);
+  postTopicToDatabase(req.body)
+    .then((topic) => {
+      res.status(201).send({ topic });
+    })
+    .catch(next);
+};
+
+exports.deleteArticleById = (req, res, next) => {
+  checkArticleExists(req.params.article_id)
+    .then(() => {
+      return deleteArticleByIdFromDatabase(req.params.article_id).then(() => {
+        res.status(204).send();
+      });
+    })
+    .catch(next);
 };

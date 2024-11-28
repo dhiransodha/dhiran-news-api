@@ -607,6 +607,37 @@ describe("PATCH /api/articles/:article_id", () => {
   });
 });
 
+describe("DELETE /api/articles/:article_id", () => {
+  test("204: should delete the article based on its id", () => {
+    return request(app)
+      .delete("/api/articles/3")
+      .expect(204)
+      .then(() => {
+        return db
+          .query(`SELECT * FROM articles WHERE article_id = 3`)
+          .then(({ rows }) => {
+            expect(rows.length).toBe(0);
+          });
+      });
+  });
+  test("404: Gives a not found status when the article id is valid but doesnt exist", () => {
+    return request(app)
+      .delete("/api/articles/999")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("article not found");
+      });
+  });
+  test("400: Gives a bad request when the article id is invalid", () => {
+    return request(app)
+      .delete("/api/articles/invalididdd")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+});
+
 describe("DELETE /api/comments/comment_id:", () => {
   test("204: Deletes the comment from the database", () => {
     return request(app)
