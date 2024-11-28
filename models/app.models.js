@@ -12,7 +12,22 @@ exports.getTopicsFromDatabase = () => {
   return db.query(`SELECT * FROM topics`).then(({ rows }) => rows);
 };
 
-exports.getArticlesFromDatabase = async (sort_by, order, topic, article_id) => {
+exports.countArticles = () => {
+  return db
+    .query(`SELECT CAST(COUNT(article_id) AS INT) FROM articles`)
+    .then(({ rows: [{ count }] }) => {
+      return count;
+    });
+};
+
+exports.getArticlesFromDatabase = async (
+  sort_by,
+  order,
+  topic,
+  article_id,
+  limit,
+  page
+) => {
   const allowedOrder = ["asc", "desc"];
   const values = [];
   if (!order) order = "desc";
@@ -26,17 +41,35 @@ exports.getArticlesFromDatabase = async (sort_by, order, topic, article_id) => {
     await db.query(`SELECT slug FROM topics`).then(({ rows }) => rows)
   ).map((obj) => obj.slug);
   if (topic) {
-    query += ` WHERE articles.topic = $1`;
-    values[0] = topic;
+    values.push(topic);
+    query += ` WHERE articles.topic = $${values.length}`;
   }
   if (article_id) {
-    query += ` WHERE articles.article_id = $1`;
-    values[0] = article_id;
+    values.push(article_id);
+    query += ` WHERE articles.article_id = $${values.length}`;
   }
   query += ` GROUP BY articles.article_id`;
   if (!sort_by) query += ` ORDER BY created_at ${order}`;
   else query += ` ORDER BY ${sort_by} ${order}`;
+  if (limit === "") limit = 10;
+  if (limit) {
+    values.push(limit);
+    query += ` LIMIT $${values.length}`;
+  }
+  if (page > 1 && !limit) {
+    return [];
+  }
+  if (page < 1)
+    return Promise.reject({ msg: "invalid page number", status: 400 });
+  if (page && limit) {
+    const offset = (page - 1) * limit;
+    values.push(offset);
+    query += ` OFFSET $${values.length}`;
+  }
   return db.query(query, values).then(({ rows }) => {
+    if (page && limit && rows.length === 0) return [];
+    if (page && !/^\d+$/.test(page))
+      return Promise.reject({ msg: "bad request", status: 400 });
     if (!rows.length) {
       if (validTopics.includes(topic))
         return Promise.reject({

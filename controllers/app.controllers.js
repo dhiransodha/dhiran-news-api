@@ -14,6 +14,7 @@ const {
   checkValidQueries,
   incrementCommentVotes,
   postArticleToDatabase,
+  countArticles,
 } = require("../models/app.models");
 
 exports.getApi = (req, res, next) => {
@@ -41,17 +42,25 @@ exports.getArticleFromId = (req, res, next) => {
 
 exports.getArticles = (req, res, next) => {
   const { query } = req;
-  const validQueries = ["sort_by", "order", "topic"];
+  const validQueries = ["sort_by", "order", "topic", "limit", "p"];
   const promises = [
     // checkValidQueries(validQueries, query),
     Promise.resolve(),
-    getArticlesFromDatabase(query.sort_by, query.order, query.topic),
+    getArticlesFromDatabase(
+      query.sort_by,
+      query.order,
+      query.topic,
+      undefined,
+      query.limit,
+      query.p
+    ),
+    countArticles(),
   ];
   if (query.sort_by !== "comment_count")
     promises[0] = checkColumnNameExists("articles", query.sort_by);
   Promise.all(promises)
-    .then(([_, articles]) => {
-      res.status(200).send({ articles });
+    .then(([_, articles, total_count]) => {
+      res.status(200).send({ total_count, articles });
     })
     .catch(next);
 };
