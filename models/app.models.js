@@ -12,14 +12,6 @@ exports.getTopicsFromDatabase = () => {
   return db.query(`SELECT * FROM topics`).then(({ rows }) => rows);
 };
 
-exports.countArticles = () => {
-  return db
-    .query(`SELECT CAST(COUNT(article_id) AS INT) FROM articles`)
-    .then(({ rows: [{ count }] }) => {
-      return count;
-    });
-};
-
 exports.getArticlesFromDatabase = async (
   sort_by,
   order,
@@ -33,7 +25,14 @@ exports.getArticlesFromDatabase = async (
   if (!order) order = "desc";
   if (!allowedOrder.includes(order))
     return Promise.reject({ msg: "bad request", status: 400 });
-  let query = `SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url, CAST(COUNT(comments.comment_id) AS INT) AS comment_count`;
+  let query = `SELECT articles.author, 
+  articles.title, 
+  articles.article_id, 
+  articles.topic, 
+  articles.created_at, 
+  articles.votes, 
+  articles.article_img_url, 
+  CAST(COUNT(comments.comment_id) AS INT) AS comment_count`;
   if (article_id) query += `, articles.body`;
   query += ` FROM articles
   LEFT JOIN comments ON comments.article_id = articles.article_id`;
@@ -51,25 +50,23 @@ exports.getArticlesFromDatabase = async (
   query += ` GROUP BY articles.article_id`;
   if (!sort_by) query += ` ORDER BY created_at ${order}`;
   else query += ` ORDER BY ${sort_by} ${order}`;
+  const total_count = (await db.query(query, values).then(({ rows }) => rows))
+    .length;
   if (limit === "") limit = 10;
   if (limit) {
     values.push(limit);
     query += ` LIMIT $${values.length}`;
   }
   if (page > 1 && !limit) {
-    return [];
+    return [total_count, []];
   }
-  if (page < 1)
-    return Promise.reject({ msg: "invalid page number", status: 400 });
   if (page && limit) {
     const offset = (page - 1) * limit;
     values.push(offset);
     query += ` OFFSET $${values.length}`;
   }
   return db.query(query, values).then(({ rows }) => {
-    if (page && limit && rows.length === 0) return [];
-    if (page && !/^\d+$/.test(page))
-      return Promise.reject({ msg: "bad request", status: 400 });
+    if (page && limit && rows.length === 0) return [total_count, []];
     if (!rows.length) {
       if (validTopics.includes(topic))
         return Promise.reject({
@@ -78,21 +75,55 @@ exports.getArticlesFromDatabase = async (
         });
       else return Promise.reject({ msg: "not found", status: 404 });
     }
-    return rows.map((article) => {
-      article.created_at = String(article.created_at);
-      return article;
-    });
+    return [
+      total_count,
+      rows.map((article) => {
+        delete article.total_count;
+        article.created_at = String(article.created_at);
+        return article;
+      }),
+    ];
   });
 };
 
-exports.getCommentsFromDatabase = (article_id) => {
+exports.checkValidPage = (page) => {
+  if (page === "") return Promise.reject({ msg: "no page given", status: 400 });
+  else if (page && page < 1) {
+    return Promise.reject({ msg: "bad page request", status: 400 });
+  } else if (page && !/^\d+$/.test(page)) {
+    return Promise.reject({ msg: "bad page request", status: 400 });
+  } else return Promise.resolve();
+};
+
+exports.checkValidLimit = (limit) => {
+  if (limit && limit < 1) {
+    return Promise.reject({ msg: "bad limit request", status: 400 });
+  } else if (limit && !/^\d+$/.test(limit)) {
+    return Promise.reject({ msg: "bad limit request", status: 400 });
+  } else return Promise.resolve();
+};
+
+exports.getCommentsFromDatabase = (article_id, limit, page) => {
   const values = [];
   let query = `SELECT * FROM comments`;
   if (article_id) {
-    query += ` WHERE article_id = $1`;
-    values[0] = article_id;
+    values.push(article_id);
+    query += ` WHERE article_id = $${values.length}`;
   }
   query += ` ORDER BY created_at DESC`;
+  if (limit === "") limit = 10;
+  if (limit) {
+    values.push(limit);
+    query += ` LIMIT $${values.length}`;
+  }
+  if (page > 1 && !limit) {
+    return [];
+  }
+  if (page && limit) {
+    const offset = (page - 1) * limit;
+    values.push(offset);
+    query += ` OFFSET $${values.length}`;
+  }
   return db.query(query, values).then(({ rows }) => {
     return rows.map((comment) => {
       comment.created_at = String(comment.created_at);

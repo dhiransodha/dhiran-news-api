@@ -14,7 +14,8 @@ const {
   checkValidQueries,
   incrementCommentVotes,
   postArticleToDatabase,
-  countArticles,
+  checkValidPage,
+  checkValidLimit,
 } = require("../models/app.models");
 
 exports.getApi = (req, res, next) => {
@@ -34,7 +35,7 @@ exports.getTopics = (req, res, next) => {
 exports.getArticleFromId = (req, res, next) => {
   const { params } = req;
   getArticlesFromDatabase(undefined, undefined, undefined, params.article_id)
-    .then((article) => {
+    .then(([_, article]) => {
       res.status(200).send({ article: article[0] });
     })
     .catch(next);
@@ -46,34 +47,43 @@ exports.getArticles = (req, res, next) => {
   const promises = [
     // checkValidQueries(validQueries, query),
     Promise.resolve(),
-    getArticlesFromDatabase(
-      query.sort_by,
-      query.order,
-      query.topic,
-      undefined,
-      query.limit,
-      query.p
-    ),
-    countArticles(),
+    checkValidLimit(query.limit),
+    checkValidPage(query.p),
   ];
   if (query.sort_by !== "comment_count")
     promises[0] = checkColumnNameExists("articles", query.sort_by);
   Promise.all(promises)
-    .then(([_, articles, total_count]) => {
-      res.status(200).send({ total_count, articles });
+    .then(() => {
+      return getArticlesFromDatabase(
+        query.sort_by,
+        query.order,
+        query.topic,
+        undefined,
+        query.limit,
+        query.p
+      ).then(([total_count, articles]) => {
+        res.status(200).send({ total_count, articles });
+      });
     })
     .catch(next);
 };
 
 exports.getCommentsByArticle = (req, res, next) => {
-  const { params } = req;
+  const { params, query } = req;
   const promises = [
     checkArticleExists(params.article_id),
-    getCommentsFromDatabase(params.article_id),
+    checkValidLimit(query.limit),
+    checkValidPage(query.p),
   ];
   Promise.all(promises)
-    .then(([_, comments]) => {
-      res.status(200).send({ comments });
+    .then(() => {
+      return getCommentsFromDatabase(
+        params.article_id,
+        query.limit,
+        query.p
+      ).then((comments) => {
+        res.status(200).send({ comments });
+      });
     })
     .catch(next);
 };
