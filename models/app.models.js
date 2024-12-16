@@ -232,10 +232,11 @@ exports.postArticleToDatabase = (body) => {
   const array = [
     Object.keys(body)
       .sort()
+      .concat(["article_img_url"])
       .map((key) => body[key]),
   ];
   const query = format(
-    `INSERT INTO articles(author, body, title, topic) VALUES %L RETURNING *`,
+    `INSERT INTO articles(author, body, title, topic, article_img_url) VALUES %L RETURNING *`,
     array
   );
   return db.query(query).then(({ rows: [article] }) => {
