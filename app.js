@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const {
   getCommentsByArticle,
   postCommentByArticle,
@@ -7,6 +8,8 @@ const {
 } = require("./controllers/app.controllers");
 const app = express();
 const apiRouter = require("./routes/api-router");
+
+app.use(cors());
 
 app.use(express.json());
 
