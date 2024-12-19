@@ -470,14 +470,14 @@ describe("GET /api/articles/:article_id/comments", () => {
 });
 
 describe("POST /api/articles/:article_id/comments", () => {
-  test("200: Serves the comment when given a valid body", () => {
+  test("201: Serves the comment when given a valid body", () => {
     return request(app)
       .post("/api/articles/1/comments")
       .send({
         username: "icellusedkars",
         body: "cool article",
       })
-      .expect(200)
+      .expect(201)
       .then(({ body: { comment } }) => {
         expect(comment).toMatchObject({
           comment_id: expect.any(Number),

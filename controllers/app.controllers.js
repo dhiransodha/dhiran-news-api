@@ -99,7 +99,7 @@ exports.postCommentByArticle = (req, res, next) => {
   ];
   Promise.all(promises)
     .then(([_, __, comment]) => {
-      res.status(200).send({ comment });
+      res.status(201).send({ comment });
     })
     .catch(next);
 };
