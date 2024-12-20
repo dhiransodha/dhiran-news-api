@@ -18,6 +18,8 @@ const {
   checkValidLimit,
   postTopicToDatabase,
   deleteArticleByIdFromDatabase,
+  postUserToDatabase,
+  checkValidUser,
 } = require("../models/app.models");
 
 exports.getApi = (req, res, next) => {
@@ -187,4 +189,17 @@ exports.deleteArticleById = (req, res, next) => {
       });
     })
     .catch(next);
+};
+
+exports.postUser = (req, res, next) => {
+  Promise.all([checkValidUser(req.body), postUserToDatabase(req.body)])
+    .then(([_, user]) => {
+      console.log(user);
+      res.status(201).send({ user });
+    })
+    .catch((err) => {
+      if (err.code === "23505")
+        return next({ status: 400, msg: "username taken" });
+      else return next(err);
+    });
 };

@@ -257,3 +257,26 @@ exports.deleteArticleByIdFromDatabase = (article_id) => {
   const values = [article_id];
   return db.query(`DELETE FROM articles WHERE article_id = $1`, values);
 };
+
+exports.postUserToDatabase = (userInfo) => {
+  const array = Object.keys(userInfo)
+    .sort()
+    .map((key) => {
+      return userInfo[key];
+    });
+  const query = format(
+    `INSERT INTO users(avatar_url, name, username) VALUES %L RETURNING *`,
+    [array]
+  );
+  return db.query(query).then(({ rows }) => rows[0]);
+};
+
+exports.checkValidUser = async (userInfo) => {
+  const allowedKeys = ["avatar_url", "name", "username"];
+  for (let key in userInfo) {
+    if (!allowedKeys.includes(key))
+      return Promise.reject({ status: 400, msg: "bad request" });
+  }
+  if (Object.keys(userInfo).length !== 3)
+    return Promise.reject({ status: 400, msg: "bad request" });
+};

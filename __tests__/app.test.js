@@ -816,7 +816,54 @@ describe("POST /api/articles ", () => {
       });
   });
 });
-
+describe("POST /api/users ", () => {
+  test("201: user is posted and returned", () => {
+    return request(app)
+      .post("/api/users")
+      .send({
+        username: "bobbuilder",
+        name: "Bob Smith",
+        avatar_url:
+          "https://images.pexels.com/photos/585419/pexels-photo-585419.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      })
+      .expect(201)
+      .then(({ body: { user } }) => {
+        expect(user).toMatchObject({
+          username: "bobbuilder",
+          name: "Bob Smith",
+          avatar_url:
+            "https://images.pexels.com/photos/585419/pexels-photo-585419.jpeg?auto=compress&cs=tinysrgb&w=1200",
+        });
+      });
+  });
+  test("400: gives bad request if user information is not complete", () => {
+    return request(app)
+      .post("/api/users")
+      .send({
+        name: "Bob Smith",
+        avatar_url:
+          "https://images.pexels.com/photos/585419/pexels-photo-585419.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("bad request");
+      });
+  });
+  test("400: gives a bad request when the username already exists", () => {
+    return request(app)
+      .post("/api/users")
+      .send({
+        username: "butter_bridge",
+        name: "Bob Smith",
+        avatar_url:
+          "https://images.pexels.com/photos/585419/pexels-photo-585419.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      })
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("username taken");
+      });
+  });
+});
 describe("POST /api/topics ", () => {
   test("201: topic is posted and returned", () => {
     return request(app)
