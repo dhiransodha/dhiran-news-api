@@ -229,8 +229,10 @@ exports.incrementCommentVotes = (comment_id, inc_votes) => {
 };
 
 exports.postArticleToDatabase = (body) => {
+  const newBody = {...body}
+  delete newBody.article_img_url
   const array = [
-    Object.keys(body)
+    Object.keys(newBody)
       .sort()
       .concat(["article_img_url"])
       .map((key) => body[key]),

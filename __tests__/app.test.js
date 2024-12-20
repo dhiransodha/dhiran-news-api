@@ -773,6 +773,8 @@ describe("POST /api/articles ", () => {
         title: "theory of cats",
         body: "cats always land on their legs",
         topic: "cats",
+        article_img_url:
+          "https://images.pexels.com/photos/29013083/pexels-photo-29013083/free-photo-of-bicycles-against-traditional-dutch-building.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
       })
       .expect(201)
       .then(({ body: { article } }) => {
