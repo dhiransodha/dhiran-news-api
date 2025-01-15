@@ -1,7 +1,7 @@
 # Dhiran's News API
 
 **LINK TO DEPLOYED VERSION**
-Current working version [here](https://dhiran-news-app.netlify.app/articles).
+Current working version [here](https://dhiran-news-app.netlify.app).
 When first using the app and loading content you need to wait around 20s and refresh the page a few times, since the free backend hosting site used spins down when left not in use.
 
 **WHAT EVEN IS THIS APP?**
