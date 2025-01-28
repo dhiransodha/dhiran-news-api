@@ -29,7 +29,7 @@ Postgres should also be installed and running
 
 ---
 
-The website is hosted here https://dhiran-news.onrender.com/api/
+The API is hosted here https://dhiran-news.onrender.com/api/
 
 ---
 
